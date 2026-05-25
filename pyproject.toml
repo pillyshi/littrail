@@ -18,12 +18,11 @@ dependencies = [
 [project.scripts]
 littrail = "littrail.cli:app"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.0",
     "ruff>=0.4",
     "pyright>=1.1",
-    "build>=1.0",
 ]
 
 [tool.hatch.build.targets.wheel]

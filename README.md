@@ -28,7 +28,19 @@ generated report -> verified catalog -> paper notes -> issue candidates -> GitHu
 uvx littrail --help
 
 # For CI or team-managed projects:
-poetry add --group dev littrail
+uv add --group dev littrail
+```
+
+## Development
+
+```bash
+git clone https://github.com/pillyshi/littrail
+cd littrail
+uv sync --group dev
+uv run pytest
+uv run ruff check src/ tests/
+uv run pyright src/
+uv build
 ```
 
 ## Quickstart
@@ -85,7 +97,7 @@ logs, or any Git-tracked file.
 |----------|--------|--------|
 | CLI framework | typer | Auto `--help`, type-annotation based |
 | YAML library | ruamel.yaml | Preserves key order and formatting |
-| Type checker | pyright | Strict mode, good typer compatibility |
+| Type checker | pyright (basic) | pyalex/ruamel.yaml に型スタブなし、basic mode で対応 |
 | `verify` auto-update | No | Keeps human judgment in the loop |
 | Key format | `<family>-<year>` | Human-readable, suffix on collision |
 
