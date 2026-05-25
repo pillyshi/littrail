@@ -1,0 +1,9 @@
+catalog_version: 1
+project: ""
+verified_on: null
+verification:
+  provider: OpenAlex
+  client: pyalex
+source_reports: []
+
+papers: []
