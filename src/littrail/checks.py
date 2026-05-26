@@ -64,18 +64,12 @@ def run_checks(catalog_path: Path) -> list[str]:
                     f"research/pdfs/"
                 )
 
-    # 5. .gitignore must contain research/pdfs/
-    gitignore_path = _find_gitignore(catalog_path)
-    if gitignore_path is None:
+    # 5. research/pdfs/ must be excluded from Git
+    if not _pdfs_excluded_from_git(research_dir):
         problems.append(
-            ".gitignore not found. research/pdfs/ is not excluded from Git."
+            "research/pdfs/ is not excluded from Git. "
+            "Add 'pdfs/' to research/.gitignore or 'research/pdfs/' to .gitignore."
         )
-    else:
-        if not _gitignore_has_pdfs_entry(gitignore_path):
-            problems.append(
-                f"{gitignore_path} does not contain 'research/pdfs/'. "
-                "PDF binaries may be accidentally committed."
-            )
 
     # 6. No tracked PDFs in research/pdfs/
     tracked_pdf_problems = _check_tracked_pdfs(research_dir)
@@ -84,9 +78,28 @@ def run_checks(catalog_path: Path) -> list[str]:
     return problems
 
 
-def _find_gitignore(catalog_path: Path) -> Path | None:
-    # Walk up from catalog_path looking for .gitignore
-    current = catalog_path.parent
+def _pdfs_excluded_from_git(research_dir: Path) -> bool:
+    # Option 1: research/.gitignore contains pdfs/
+    local_gi = research_dir / ".gitignore"
+    if local_gi.exists():
+        for line in local_gi.read_text(encoding="utf-8").splitlines():
+            if line.strip() in ("pdfs/", "pdfs"):
+                return True
+    # Option 2: ancestor .gitignore contains research/pdfs/
+    ancestor_gi = _find_ancestor_gitignore(research_dir.parent)
+    if ancestor_gi is not None:
+        try:
+            text = ancestor_gi.read_text(encoding="utf-8")
+        except OSError:
+            return False
+        for line in text.splitlines():
+            if line.strip() in ("research/pdfs/", "research/pdfs", "/research/pdfs/"):
+                return True
+    return False
+
+
+def _find_ancestor_gitignore(start: Path) -> Path | None:
+    current = start
     for _ in range(10):
         candidate = current / ".gitignore"
         if candidate.exists():
@@ -96,18 +109,6 @@ def _find_gitignore(catalog_path: Path) -> Path | None:
             break
         current = parent
     return None
-
-
-def _gitignore_has_pdfs_entry(gitignore_path: Path) -> bool:
-    try:
-        text = gitignore_path.read_text(encoding="utf-8")
-    except OSError:
-        return False
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped in ("research/pdfs/", "research/pdfs", "/research/pdfs/"):
-            return True
-    return False
 
 
 def _check_tracked_pdfs(research_dir: Path) -> list[str]:

@@ -44,7 +44,7 @@ def init(
 
     _install_template("research_README.md", base / "README.md", force)
     _install_template("catalog.yaml", base / "catalog.yaml", force)
-    _ensure_gitignore_entry("research/pdfs/")
+    _ensure_research_gitignore(base)
     typer.echo("research/ workflow initialised.")
 
 
@@ -57,8 +57,9 @@ def _install_template(template_name: str, dest: Path, force: bool) -> None:
     typer.echo(f"Created: {dest}")
 
 
-def _ensure_gitignore_entry(entry: str) -> None:
-    gitignore = Path(".gitignore")
+def _ensure_research_gitignore(base: Path) -> None:
+    gitignore = base / ".gitignore"
+    entry = "pdfs/"
     if gitignore.exists():
         lines = gitignore.read_text(encoding="utf-8").splitlines()
         if any(line.strip() == entry for line in lines):
@@ -66,11 +67,10 @@ def _ensure_gitignore_entry(entry: str) -> None:
         text = gitignore.read_text(encoding="utf-8")
         if not text.endswith("\n"):
             text += "\n"
-        text += entry + "\n"
-        gitignore.write_text(text, encoding="utf-8")
+        gitignore.write_text(text + entry + "\n", encoding="utf-8")
     else:
         gitignore.write_text(entry + "\n", encoding="utf-8")
-    typer.echo(f"Added to .gitignore: {entry}")
+    typer.echo(f"Created: {gitignore}")
 
 
 # ---------------------------------------------------------------------------
