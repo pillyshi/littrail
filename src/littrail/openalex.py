@@ -34,7 +34,7 @@ class PyAlexFetcher:
 
     def _fetch(self, identifier: str) -> dict[str, Any]:
         try:
-            work = pyalex.Work()[identifier]  # type: ignore[index]
+            work = pyalex.Works()[identifier]  # type: ignore[index]
             return dict(work)  # type: ignore[arg-type]
         except Exception as exc:
             msg = str(exc)
