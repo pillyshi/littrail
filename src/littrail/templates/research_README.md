@@ -60,3 +60,18 @@ littrail verify
 # Check repository consistency offline
 littrail check
 ```
+
+### Searching for papers
+
+```bash
+# Human-readable table
+littrail search "retrieval augmented generation"
+
+# Machine-readable JSON for agent pipelines
+littrail search "retrieval augmented generation" --json --limit 20 \
+  | jq -r '.[].openalex_id' \
+  | xargs -I{} littrail add-paper --openalex {}
+```
+
+Search results are unverified candidates.
+Run `littrail verify` after adding papers to confirm metadata against OpenAlex.

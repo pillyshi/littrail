@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -8,7 +9,14 @@ import typer
 
 from littrail.catalog import CatalogError, generate_key, load_catalog, save_catalog
 from littrail.checks import run_checks
-from littrail.openalex import FetchError, PyAlexFetcher, normalize_work
+from littrail.openalex import (
+    FetchError,
+    PyAlexFetcher,
+    extract_doi,
+    extract_openalex_id,
+    extract_venue,
+    normalize_work,
+)
 
 app = typer.Typer(
     name="littrail",
@@ -260,6 +268,75 @@ def check(
         sys.exit(1)
     else:
         typer.echo("All checks passed.")
+
+
+# ---------------------------------------------------------------------------
+# search
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def search(
+    query: str = typer.Argument(..., help="Search query."),
+    limit: int = typer.Option(10, "--limit", help="Maximum number of results."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON for agent pipelines."),
+) -> None:
+    """Search OpenAlex for papers matching a query (read-only)."""
+    fetcher = PyAlexFetcher()
+    try:
+        raw_works = fetcher.search_works(query, limit)
+    except FetchError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1)
+
+    if json_output:
+        records = []
+        for raw in raw_works:
+            entry = normalize_work(raw)
+            records.append({
+                "openalex_id": extract_openalex_id(raw),
+                "doi": extract_doi(raw),
+                "title": entry.title,
+                "authors": entry.authors,
+                "year": entry.year,
+                "venue": extract_venue(raw),
+            })
+        typer.echo(json.dumps(records, ensure_ascii=False))
+        return
+
+    # Table output
+    rows: list[tuple[str, str, str, str]] = []
+    seen_keys: set[str] = set()
+    for raw in raw_works:
+        entry = normalize_work(raw)
+        key = generate_key(entry.authors, entry.year, seen_keys)
+        seen_keys.add(key)
+        authors_short = _format_authors_short(entry.authors)
+        title_short = entry.title[:60] + "..." if len(entry.title) > 60 else entry.title
+        rows.append((key, str(entry.year), authors_short, title_short))
+
+    if not rows:
+        return
+
+    col_widths = (
+        max(len("KEY"), max(len(r[0]) for r in rows)),
+        max(len("YEAR"), max(len(r[1]) for r in rows)),
+        max(len("AUTHORS"), max(len(r[2]) for r in rows)),
+        max(len("TITLE"), max(len(r[3]) for r in rows)),
+    )
+    header = "  ".join(h.ljust(w) for h, w in zip(("KEY", "YEAR", "AUTHORS", "TITLE"), col_widths))
+    typer.echo(header)
+    for row in rows:
+        typer.echo("  ".join(cell.ljust(w) for cell, w in zip(row, col_widths)))
+
+
+def _format_authors_short(authors: list[str]) -> str:
+    if not authors:
+        return ""
+    last = authors[0].split(",")[0].strip()
+    if len(authors) > 1:
+        return f"{last} et al."
+    return last
 
 
 if __name__ == "__main__":

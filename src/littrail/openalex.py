@@ -15,6 +15,7 @@ class FetchError(Exception):
 class WorkFetcher(Protocol):
     def fetch_by_doi(self, doi: str) -> dict[str, Any]: ...
     def fetch_by_openalex_id(self, openalex_id: str) -> dict[str, Any]: ...
+    def search_works(self, query: str, limit: int) -> list[dict[str, Any]]: ...
 
 
 class PyAlexFetcher:
@@ -31,6 +32,13 @@ class PyAlexFetcher:
         if not openalex_id.startswith("https://"):
             openalex_id = f"https://openalex.org/{openalex_id}"
         return self._fetch(openalex_id)
+
+    def search_works(self, query: str, limit: int) -> list[dict[str, Any]]:
+        try:
+            results = pyalex.Works().search(query).get(per_page=limit)
+            return [dict(w) for w in results]  # type: ignore[arg-type]
+        except Exception as exc:
+            raise FetchError(f"Search failed: {exc}") from exc
 
     def _fetch(self, identifier: str) -> dict[str, Any]:
         try:
