@@ -314,7 +314,8 @@ def search(
     seen_keys: set[str] = set()
     for raw in raw_works:
         entry = normalize_work(raw)
-        key = generate_key(entry.authors, entry.year, seen_keys)
+        key_year = entry.year if entry.year != 0 else None
+        key = generate_key(entry.authors, key_year, seen_keys)
         seen_keys.add(key)
         authors_short = _format_authors_short(entry.authors)
         title_short = entry.title[:60] + "..." if len(entry.title) > 60 else entry.title

@@ -80,10 +80,11 @@ def save_catalog(catalog: Catalog, path: Path) -> None:
         yaml.dump(data, f)
 
 
-def generate_key(authors: list[str], year: int, existing_keys: set[str]) -> str:
+def generate_key(authors: list[str], year: int | None, existing_keys: set[str]) -> str:
     family = _extract_family_name(authors[0]) if authors else "unknown"
     family = re.sub(r"[^a-z0-9]", "", family.lower())
-    base = f"{family}-{year}"
+    year_str = str(year) if year else "unknown"
+    base = f"{family}-{year_str}"
     if base not in existing_keys:
         return base
     suffix = 2

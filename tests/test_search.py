@@ -155,13 +155,14 @@ def test_search_year_zero_emits_null() -> None:
     assert records[0]["year"] is None
 
 
-def test_search_year_zero_table_shows_empty() -> None:
+def test_search_year_zero_table_shows_empty_and_unknown_key() -> None:
     no_year = {**SAMPLE_RAW_WORK, "publication_year": None}
     fetcher = MockFetcherWithSearch(search_results=[no_year])
     with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
         result = runner.invoke(app, ["search", "query"])
     assert result.exit_code == 0
-    assert " 0 " not in result.output
+    assert "-0" not in result.output
+    assert "unknown" in result.output
 
 
 def test_search_limit_zero_exits_1() -> None:
