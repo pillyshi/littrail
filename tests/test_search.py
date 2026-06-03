@@ -153,3 +153,28 @@ def test_search_year_zero_emits_null() -> None:
         result = runner.invoke(app, ["search", "query", "--json"])
     records = json.loads(result.output)
     assert records[0]["year"] is None
+
+
+def test_search_year_zero_table_shows_empty() -> None:
+    no_year = {**SAMPLE_RAW_WORK, "publication_year": None}
+    fetcher = MockFetcherWithSearch(search_results=[no_year])
+    with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
+        result = runner.invoke(app, ["search", "query"])
+    assert result.exit_code == 0
+    assert " 0 " not in result.output
+
+
+def test_search_limit_zero_exits_1() -> None:
+    fetcher = MockFetcherWithSearch()
+    with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
+        result = runner.invoke(app, ["search", "query", "--limit", "0"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+
+
+def test_search_limit_negative_exits_1() -> None:
+    fetcher = MockFetcherWithSearch()
+    with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
+        result = runner.invoke(app, ["search", "query", "--limit", "-1"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output

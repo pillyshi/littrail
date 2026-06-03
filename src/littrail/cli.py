@@ -277,6 +277,9 @@ def search(
     json_output: bool = typer.Option(False, "--json", help="Emit JSON for agent pipelines."),
 ) -> None:
     """Search OpenAlex for papers matching a query (read-only)."""
+    if limit < 1:
+        typer.echo("Error: limit must be at least 1.", err=True)
+        raise typer.Exit(1)
     if limit > _OPENALEX_MAX_PER_PAGE:
         typer.echo(
             f"Warning: limit capped at {_OPENALEX_MAX_PER_PAGE} (OpenAlex API maximum)",
@@ -315,7 +318,8 @@ def search(
         seen_keys.add(key)
         authors_short = _format_authors_short(entry.authors)
         title_short = entry.title[:60] + "..." if len(entry.title) > 60 else entry.title
-        rows.append((key, str(entry.year), authors_short, title_short))
+        year_display = "" if entry.year == 0 else str(entry.year)
+        rows.append((key, year_display, authors_short, title_short))
 
     if not rows:
         return
