@@ -9,14 +9,9 @@ import typer
 
 from littrail.catalog import CatalogError, generate_key, load_catalog, save_catalog
 from littrail.checks import run_checks
-from littrail.openalex import (
-    FetchError,
-    PyAlexFetcher,
-    extract_doi,
-    extract_openalex_id,
-    extract_venue,
-    normalize_work,
-)
+from littrail.openalex import FetchError, PyAlexFetcher, normalize_work
+
+_OPENALEX_MAX_PER_PAGE = 200
 
 app = typer.Typer(
     name="littrail",
@@ -282,6 +277,13 @@ def search(
     json_output: bool = typer.Option(False, "--json", help="Emit JSON for agent pipelines."),
 ) -> None:
     """Search OpenAlex for papers matching a query (read-only)."""
+    if limit > _OPENALEX_MAX_PER_PAGE:
+        typer.echo(
+            f"Warning: limit capped at {_OPENALEX_MAX_PER_PAGE} (OpenAlex API maximum)",
+            err=True,
+        )
+        limit = _OPENALEX_MAX_PER_PAGE
+
     fetcher = PyAlexFetcher()
     try:
         raw_works = fetcher.search_works(query, limit)
@@ -294,12 +296,12 @@ def search(
         for raw in raw_works:
             entry = normalize_work(raw)
             records.append({
-                "openalex_id": extract_openalex_id(raw),
-                "doi": extract_doi(raw),
+                "openalex_id": entry.identifiers.get("openalex", ""),
+                "doi": entry.identifiers.get("doi", ""),
                 "title": entry.title,
                 "authors": entry.authors,
-                "year": entry.year,
-                "venue": extract_venue(raw),
+                "year": entry.year if entry.year != 0 else None,
+                "venue": entry.venue,
             })
         typer.echo(json.dumps(records, ensure_ascii=False))
         return
@@ -333,7 +335,8 @@ def search(
 def _format_authors_short(authors: list[str]) -> str:
     if not authors:
         return ""
-    last = authors[0].split(",")[0].strip()
+    # OpenAlex display_name is "First Last" — take the last token as surname
+    last = authors[0].split()[-1]
     if len(authors) > 1:
         return f"{last} et al."
     return last

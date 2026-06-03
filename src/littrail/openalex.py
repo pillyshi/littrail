@@ -38,7 +38,16 @@ class PyAlexFetcher:
             results = pyalex.Works().search(query).get(per_page=limit)
             return [dict(w) for w in results]  # type: ignore[arg-type]
         except Exception as exc:
-            raise FetchError(f"Search failed: {exc}") from exc
+            msg = str(exc)
+            if "401" in msg or "403" in msg or "auth" in msg.lower():
+                raise FetchError(
+                    f"OpenAlex authentication error: {exc}\n"
+                    "Set the OPENALEX_API_KEY environment variable and retry."
+                ) from exc
+            raise FetchError(
+                f"Search failed: {exc}\n"
+                "Check your network connection or set OPENALEX_API_KEY."
+            ) from exc
 
     def _fetch(self, identifier: str) -> dict[str, Any]:
         try:

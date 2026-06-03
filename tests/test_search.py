@@ -128,11 +128,28 @@ def test_search_authors_short_single() -> None:
     with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
         result = runner.invoke(app, ["search", "NLP"])
     assert "et al." not in result.output
-    assert "Alice" in result.output or "Smith" in result.output
+    assert "Smith" in result.output
 
 
 def test_search_authors_short_multiple() -> None:
     fetcher = MockFetcherWithSearch()
     with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
         result = runner.invoke(app, ["search", "NLP"])
-    assert "et al." in result.output
+    assert "Yin et al." in result.output
+
+
+def test_search_limit_cap_warns() -> None:
+    fetcher = MockFetcherWithSearch()
+    with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
+        result = runner.invoke(app, ["search", "query", "--limit", "500"])
+    assert "Warning" in result.output
+    assert fetcher.last_search_limit == 200
+
+
+def test_search_year_zero_emits_null() -> None:
+    no_year = {**SAMPLE_RAW_WORK, "publication_year": None}
+    fetcher = MockFetcherWithSearch(search_results=[no_year])
+    with patch("littrail.cli.PyAlexFetcher", return_value=fetcher):
+        result = runner.invoke(app, ["search", "query", "--json"])
+    records = json.loads(result.output)
+    assert records[0]["year"] is None
