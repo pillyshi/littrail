@@ -43,6 +43,10 @@ identifiers must be verified before any paper is treated as evidence.
 Prefer, in order: DOI → OpenAlex ID (`W<number>`) → arXiv ID.
 If a report does not include a stable identifier, do not add the paper until one is found.
 
+arXiv IDs cannot be passed directly to `littrail add-paper`. Resolve them first:
+1. Search OpenAlex for the paper title or arXiv ID to obtain a `W<number>`.
+2. Use `littrail add-paper --openalex <W-number>`, or find the DOI on the arXiv abstract page and use `littrail add-paper --doi <doi>`.
+
 ## Output
 
 `research/catalog.yaml` is the only authoritative record. Nothing downstream
