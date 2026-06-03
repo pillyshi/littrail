@@ -21,7 +21,7 @@ identifiers must be verified before any paper is treated as evidence.
 ## Workflow
 
 1. Save the AI-generated report to `research/reports/`.
-2. Extract candidate stable identifiers from the report (DOI, OpenAlex ID, arXiv ID).
+2. Extract candidate stable identifiers from the report (DOI or OpenAlex ID preferred; arXiv IDs must be resolved to a DOI or OpenAlex ID before use — see Stable Identifiers below).
 3. For each candidate, add it to the catalog:
    ```bash
    littrail add-paper --doi <doi>

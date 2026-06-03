@@ -59,7 +59,8 @@ consistency. Fix any reported issues before continuing.
 Only after a paper passes verification and you have inspected the primary source:
 
 ```bash
-# Create research/notes/<key>.md using the paper-note.md template
+# <key> is the citation key in catalog.yaml (e.g., smith2023).
+# Create research/notes/<key>.md using the paper-note.md template.
 ```
 
 Write notes relative to this project's goals — why it matters, what is

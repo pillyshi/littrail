@@ -8,8 +8,9 @@ description: >
 # littrail-issue-candidates
 
 Turns verified paper notes and findings into structured issue candidates in
-`research/ideas/`. GitHub issue creation is a deliberate human step that
-happens after candidates are reviewed — not an automatic output of this skill.
+`research/ideas/`. Run after `littrail-literature-work` has produced verified
+notes. GitHub issue creation is a deliberate human step that happens after
+candidates are reviewed — not an automatic output of this skill.
 
 ## Guardrails
 
