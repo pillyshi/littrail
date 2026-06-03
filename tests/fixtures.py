@@ -53,3 +53,6 @@ class MockFetcher:
         if self._error:
             raise self._error
         return self._by_oa
+
+    def search_works(self, query: str, limit: int) -> list[dict[str, Any]]:
+        raise NotImplementedError

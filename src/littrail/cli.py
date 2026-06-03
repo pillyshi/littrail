@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -9,6 +10,8 @@ import typer
 from littrail.catalog import CatalogError, generate_key, load_catalog, save_catalog
 from littrail.checks import run_checks
 from littrail.openalex import FetchError, PyAlexFetcher, normalize_work
+
+_OPENALEX_MAX_PER_PAGE = 200
 
 app = typer.Typer(
     name="littrail",
@@ -260,6 +263,88 @@ def check(
         sys.exit(1)
     else:
         typer.echo("All checks passed.")
+
+
+# ---------------------------------------------------------------------------
+# search
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def search(
+    query: str = typer.Argument(..., help="Search query."),
+    limit: int = typer.Option(10, "--limit", help="Maximum number of results."),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON for agent pipelines."),
+) -> None:
+    """Search OpenAlex for papers matching a query (read-only)."""
+    if limit < 1:
+        typer.echo("Error: limit must be at least 1.", err=True)
+        raise typer.Exit(1)
+    if limit > _OPENALEX_MAX_PER_PAGE:
+        typer.echo(
+            f"Warning: limit capped at {_OPENALEX_MAX_PER_PAGE} (OpenAlex API maximum)",
+            err=True,
+        )
+        limit = _OPENALEX_MAX_PER_PAGE
+
+    fetcher = PyAlexFetcher()
+    try:
+        raw_works = fetcher.search_works(query, limit)
+    except FetchError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1)
+
+    if json_output:
+        records = []
+        for raw in raw_works:
+            entry = normalize_work(raw)
+            records.append({
+                "openalex_id": entry.identifiers.get("openalex", ""),
+                "doi": entry.identifiers.get("doi", ""),
+                "title": entry.title,
+                "authors": entry.authors,
+                "year": entry.year if entry.year != 0 else None,
+                "venue": entry.venue,
+            })
+        typer.echo(json.dumps(records, ensure_ascii=False))
+        return
+
+    # Table output
+    rows: list[tuple[str, str, str, str]] = []
+    seen_keys: set[str] = set()
+    for raw in raw_works:
+        entry = normalize_work(raw)
+        key_year = entry.year if entry.year != 0 else None
+        key = generate_key(entry.authors, key_year, seen_keys)
+        seen_keys.add(key)
+        authors_short = _format_authors_short(entry.authors)
+        title_short = entry.title[:60] + "..." if len(entry.title) > 60 else entry.title
+        year_display = "" if entry.year == 0 else str(entry.year)
+        rows.append((key, year_display, authors_short, title_short))
+
+    if not rows:
+        return
+
+    col_widths = (
+        max(len("KEY"), max(len(r[0]) for r in rows)),
+        max(len("YEAR"), max(len(r[1]) for r in rows)),
+        max(len("AUTHORS"), max(len(r[2]) for r in rows)),
+        max(len("TITLE"), max(len(r[3]) for r in rows)),
+    )
+    header = "  ".join(h.ljust(w) for h, w in zip(("KEY", "YEAR", "AUTHORS", "TITLE"), col_widths))
+    typer.echo(header)
+    for row in rows:
+        typer.echo("  ".join(cell.ljust(w) for cell, w in zip(row, col_widths)))
+
+
+def _format_authors_short(authors: list[str]) -> str:
+    if not authors:
+        return ""
+    # OpenAlex display_name is "First Last" — take the last token as surname
+    last = authors[0].split()[-1]
+    if len(authors) > 1:
+        return f"{last} et al."
+    return last
 
 
 if __name__ == "__main__":
