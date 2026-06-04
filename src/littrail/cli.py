@@ -65,7 +65,7 @@ def _install_skills() -> None:
             continue
         dest_dir = skills_dest_base / skill_dir.name
         dest_dir.mkdir(parents=True, exist_ok=True)
-        template_name = str(Path("skills") / skill_dir.name / "SKILL.md")
+        template_name = f"skills/{skill_dir.name}/SKILL.md"
         _install_template(template_name, dest_dir / "SKILL.md", force=False)
 
 
