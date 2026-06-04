@@ -20,6 +20,7 @@ app = typer.Typer(
 )
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
+_SKILLS_DIR = _TEMPLATES_DIR / "skills"
 _DEFAULT_CATALOG = Path("research/catalog.yaml")
 
 
@@ -33,6 +34,10 @@ def init(
     force: Annotated[
         bool,
         typer.Option("--force", help="Overwrite littrail-managed template files."),
+    ] = False,
+    include_skills: Annotated[
+        bool,
+        typer.Option("--include-skills", help="Install Claude Code skill files into .claude/skills/."),
     ] = False,
 ) -> None:
     """Initialise the research/ workflow in the current directory."""
@@ -49,6 +54,19 @@ def init(
     _install_template("catalog.yaml", base / "catalog.yaml", force)
     _ensure_research_gitignore(base)
     typer.echo("research/ workflow initialised.")
+    if include_skills:
+        _install_skills()
+
+
+def _install_skills() -> None:
+    skills_dest_base = Path(".claude") / "skills"
+    for skill_dir in sorted(_SKILLS_DIR.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        dest_dir = skills_dest_base / skill_dir.name
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        template_name = f"skills/{skill_dir.name}/SKILL.md"
+        _install_template(template_name, dest_dir / "SKILL.md", force=False)
 
 
 def _install_template(template_name: str, dest: Path, force: bool) -> None:
