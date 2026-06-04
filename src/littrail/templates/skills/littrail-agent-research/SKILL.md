@@ -60,9 +60,9 @@ Collect all results before proceeding. Each result includes `openalex_id`,
 
 Deduplicate across all search results using `openalex_id` as the key.
 If a candidate's `openalex_id` is an empty string (`""`), do not use it as a
-deduplication key — treat it as a distinct entry and identify it by `doi`
-instead. Candidates with neither an `openalex_id` nor a `doi` should be
-skipped entirely.
+deduplication key — fall back to `doi` as the deduplication key instead: two
+results with the same `doi` should be merged into one candidate. Candidates
+with neither a non-empty `openalex_id` nor a `doi` should be skipped entirely.
 
 A paper that appears in multiple query results is a stronger signal of
 relevance — note how many queries surfaced it.
