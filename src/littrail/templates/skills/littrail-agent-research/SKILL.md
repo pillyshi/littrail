@@ -98,15 +98,15 @@ littrail check
 
 Read the output of both commands. If either reports issues, fix them before
 proceeding. Hand verified papers to `littrail-literature-work` starting from
-its Step 3 (Add selected works) — do not restart that skill from Step 1, as
-discovery has already been completed here.
+its Step 5 (Write reading notes) — Steps 1–4 of that skill have already been
+completed here.
 
 ## Relationship to other skills
 
 | Skill | Focus |
 |---|---|
 | `littrail-agent-research` | Query derivation, multi-search, deduplication, ranking |
-| `littrail-literature-work` | Adding papers, reading verified papers, writing `research/notes/<key>.md` — enter at Step 3 when handing off from this skill |
+| `littrail-literature-work` | Reading verified papers, writing `research/notes/<key>.md` — enter at Step 5 when handing off from this skill |
 | `littrail-research-intake` | Ingesting AI-generated reports from `research/reports/` |
 | `littrail-issue-candidates` | Turning notes into `research/ideas/` candidates |
 
