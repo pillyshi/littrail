@@ -63,3 +63,33 @@ def test_init_force_overwrites_readme(tmp_path: Path) -> None:
     readme.write_text("custom content", encoding="utf-8")
     runner.invoke(app, ["init", "--force"], catch_exceptions=False)
     assert readme.read_text(encoding="utf-8") != "custom content"
+
+
+def test_init_include_skills_creates_skill_files(tmp_path: Path) -> None:
+    os.chdir(tmp_path)
+    result = runner.invoke(app, ["init", "--include-skills"], catch_exceptions=False)
+    assert result.exit_code == 0, result.output
+    skills_base = tmp_path / ".claude" / "skills"
+    for name in [
+        "littrail-agent-research",
+        "littrail-research-intake",
+        "littrail-literature-work",
+        "littrail-issue-candidates",
+    ]:
+        assert (skills_base / name / "SKILL.md").exists()
+
+
+def test_init_include_skills_skips_existing(tmp_path: Path) -> None:
+    os.chdir(tmp_path)
+    runner.invoke(app, ["init", "--include-skills"], catch_exceptions=False)
+    skill_file = tmp_path / ".claude" / "skills" / "littrail-research-intake" / "SKILL.md"
+    skill_file.write_text("custom content", encoding="utf-8")
+    runner.invoke(app, ["init", "--include-skills"], catch_exceptions=False)
+    assert skill_file.read_text(encoding="utf-8") == "custom content"
+
+
+def test_init_without_flag_does_not_create_skills(tmp_path: Path) -> None:
+    os.chdir(tmp_path)
+    result = runner.invoke(app, ["init"], catch_exceptions=False)
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / ".claude" / "skills").exists()
