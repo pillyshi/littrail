@@ -21,7 +21,7 @@ unverified candidates until stable identifiers and primary sources are checked.
 - Do not add every search result. Select intentionally based on project relevance.
 - Do not treat titles, abstracts, or AI-generated summaries alone as evidence.
 - Do not create GitHub issues directly from search results or candidate lists.
-- Make uncertainty explicit when ranking candidates.
+- Do not edit `catalog.yaml` by hand. Use `littrail add-paper` to add entries.
 
 ## Workflow
 
@@ -59,6 +59,11 @@ Collect all results before proceeding. Each result includes `openalex_id`,
 ### 4. Deduplicate and rank
 
 Deduplicate across all search results using `openalex_id` as the key.
+If a candidate's `openalex_id` is an empty string (`""`), do not use it as a
+deduplication key — treat it as a distinct entry and identify it by `doi`
+instead. Candidates with neither an `openalex_id` nor a `doi` should be
+skipped entirely.
+
 A paper that appears in multiple query results is a stronger signal of
 relevance — note how many queries surfaced it.
 
@@ -87,7 +92,9 @@ littrail verify
 littrail check
 ```
 
-Pass verified papers to `littrail-literature-work` for reading notes.
+Read the output of both commands. If either reports issues, fix them before
+proceeding. Pass verified papers to `littrail-literature-work` for reading
+notes.
 
 ## Relationship to other skills
 
