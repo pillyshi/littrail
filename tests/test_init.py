@@ -5,7 +5,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from littrail.cli import app
+from littrail.cli import _SKILLS_DIR, app
 
 runner = CliRunner()
 
@@ -66,8 +66,6 @@ def test_init_force_overwrites_readme(tmp_path: Path) -> None:
 
 
 def test_init_include_skills_creates_skill_files(tmp_path: Path) -> None:
-    from littrail.cli import _SKILLS_DIR
-
     os.chdir(tmp_path)
     result = runner.invoke(app, ["init", "--include-skills"], catch_exceptions=False)
     assert result.exit_code == 0, result.output
