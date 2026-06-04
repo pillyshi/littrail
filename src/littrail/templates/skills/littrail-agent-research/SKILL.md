@@ -106,7 +106,7 @@ discovery has already been completed here.
 | Skill | Focus |
 |---|---|
 | `littrail-agent-research` | Query derivation, multi-search, deduplication, ranking |
-| `littrail-literature-work` | Discovery, adding papers, reading verified papers, writing `research/notes/<key>.md` — enter at Step 3 when handing off from this skill |
+| `littrail-literature-work` | Adding papers, reading verified papers, writing `research/notes/<key>.md` — enter at Step 3 when handing off from this skill |
 | `littrail-research-intake` | Ingesting AI-generated reports from `research/reports/` |
 | `littrail-issue-candidates` | Turning notes into `research/ideas/` candidates |
 
