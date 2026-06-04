@@ -70,14 +70,18 @@ relevance — note how many queries surfaced it.
 Rank the deduplicated candidates by likely relevance to the project:
 
 - How directly does the topic match the project's core problem?
-- How recently was it published relative to the project's timeline?
+- How recently was it published relative to the project's timeline? (If `year` is `null`, treat it as neutral — do not discard solely on that basis.)
 - How many of your queries returned it?
 
 Keep uncertainty explicit: a high-ranking candidate is still unverified.
 
 ### 5. Hand off to verification
 
-For each candidate worth tracking, add it to the catalog:
+Only proceed with candidates that have a non-empty identifier confirmed in
+Step 4. Passing an empty string to `--openalex` or `--doi` will cause a
+network request with an invalid ID and return an error.
+
+For each selected candidate, add it to the catalog:
 
 ```bash
 littrail add-paper --openalex <openalex_id>
@@ -93,15 +97,16 @@ littrail check
 ```
 
 Read the output of both commands. If either reports issues, fix them before
-proceeding. Pass verified papers to `littrail-literature-work` for reading
-notes.
+proceeding. Hand verified papers to `littrail-literature-work` starting from
+its Step 3 (Add selected works) — do not restart that skill from Step 1, as
+discovery has already been completed here.
 
 ## Relationship to other skills
 
 | Skill | Focus |
 |---|---|
 | `littrail-agent-research` | Query derivation, multi-search, deduplication, ranking |
-| `littrail-literature-work` | Reading verified papers, writing `research/notes/<key>.md` |
+| `littrail-literature-work` | Discovery, adding papers, reading verified papers, writing `research/notes/<key>.md` — enter at Step 3 when handing off from this skill |
 | `littrail-research-intake` | Ingesting AI-generated reports from `research/reports/` |
 | `littrail-issue-candidates` | Turning notes into `research/ideas/` candidates |
 
